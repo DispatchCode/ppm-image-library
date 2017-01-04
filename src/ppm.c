@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #ifndef  _PPM_IMAGE
+
 #define  _PPM_IMAGE
 
 #include <stdlib.h>
@@ -38,15 +39,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #include "include/ppm.h"
+
 #endif
 
 
-/**
- * \brief <p>Memory allocation and struct initialization</p>
- *
- * @param  w  width  of the image
- * @param  h  height of the image
- */
 void initialize(int w, int h) 
 {
   if(image.pixels == NULL)
@@ -57,18 +53,6 @@ void initialize(int w, int h)
   }
 }
 
-
-/**
- *\brief <p><b>NOTE</b> The function assumes that a previously called to the function initialize() is occurred (for performance reason)
- *\brief Set pixel color at the (x,y) location</p>
- *
- * @param  x  x axys position
- * @param  y  y axys position
- * @param  r  red color
- * @param  g  green color
- * @param  b  blue color
- *
- */
 void set_pixel_rgb(int x, int y, int r, int g, int b) 
 {
   if(x >=0 && y>=0 && x<=image.w && y<=image.h) 
@@ -79,47 +63,60 @@ void set_pixel_rgb(int x, int y, int r, int g, int b)
   }
 }
 
-/**
- * \brief The same as before (refer to set_pixel_rgb() )
- *
- * @param color   packed color in rgb format
- */
 void set_pixel_int(int x, int y, int color)
 {
   set_pixel_rgb(x, y, R(color), G(color), B(color));
 }
 
-/**
- * \brief <p><b>WARNING!</b> call this only after a previous initialization calling (initialize())</p>
- *
- * @param pixels   pixels array
- */
 void set_pixel_array(char* pixels)
 {
   assert(image.pixels != NULL);
   memcpy(&image.pixels, &pixels, sizeof(image.pixels));
 }
 
-
-/**
- * \brief  Save Image in ppm format (eg. with ppm extension)
- *
- * @param  imageName   the name of the image
- */
 void save_image(char *imageName) 
 {  
   FILE *file = fopen(imageName, "wb");
-  fprintf(file, "%s%d%s%d%s", "P6\n#DispatchCode PPM CLib\n", image.w, " ", image.h, "\n255\n");  
+  fprintf(file, "%s%d%s%d%s", "P6\n#DispatchCode PPMImageLib\n", image.w, " ", image.h, "\n255\n");  
   fwrite(image.pixels, sizeof(char), 3+(image.w*image.h*3), file);
   
   fclose(file);
   free(image.pixels);
 }
 
-/**
- * \brief  Destroy pixel array without save image
- *
- */
+void set_background_rect_rgb(rectangle rect, int r, int g, int b)
+{
+  assert(rect.b <= image.w && rect.h <= image.h);
+  
+  int x = rect.x;
+  
+  while(x++ < rect.b)
+  {
+    int y = rect.y;
+    while(y++ < rect.h)
+    {
+      set_pixel_rgb(x,y,r,g,b);
+    }  
+  }
+}
+
+void set_background_rgb(int r, int g, int b)
+{
+  // The "rect" area is the entire image
+  rectangle rect;
+  rect.y = 0;
+  rect.x = 0;
+  rect.b = image.w;
+  rect.h = image.h;
+  
+  set_background_rect_rgb(rect, r, g, b);
+}
+
+void set_background_int(int color)
+{
+  set_background_rgb(R(color), G(color), B(color));
+}
+
 void destroy()
 {
   assert(image.pixels != NULL);
